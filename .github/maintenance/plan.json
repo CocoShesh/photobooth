@@ -1,0 +1,87 @@
+{
+  "start": "2026-10-10",
+  "end": "2026-11-08",
+  "timezone": "Asia/Manila",
+  "reviewed_base": "6a01629858828cf118f6db688d2e9078a9775091",
+  "tasks": [
+    {
+      "id": "contributing",
+      "due": "2026-10-14",
+      "title": "Add project-specific contribution and verification guide",
+      "files": {
+        "CONTRIBUTING.md": "# Contributing to photobooth\n\n## Start with the correct application\n\nThe live static studio is `studio/index.html`. Run `python3 -m http.server 8080 --directory studio` from the repository root and open http://localhost:8080. No build is needed for this version. The separate original React application uses `npm ci` and `npm run dev`; do not confuse the two entry points.\n\n## Keep changes reviewable\n\nDescribe the observed problem and the behavior after your change. Keep one concern per pull request; avoid unrelated dependency updates and formatting churn. Read existing repository instructions before changing source.\n\n## Verification\n\nFor the static studio, verify camera permission denial, capture, retake, JPG export and GIF export using a test camera or synthetic frames. For the separate React app run `npm run build`; `npm run lint` reports its existing lint state. Run `python3 scripts/source-preflight.py` for inline-script syntax checks once available.\n\nFor browser changes, check 390 × 844, 768 × 1024 and 1440 × 900 viewports. Look for horizontal overflow, clipped controls, readable text and keyboard focus. Record the actual browser and dimensions; a screenshot alone does not prove the whole journey.\n\nUseful end-to-end check: Select a layout, allow camera access, capture a complete strip, retake a shot, add a caption/sticker, and export. Test permission denial and verify tracks stop after leaving capture. Test Share only on a browser that supports it.\n\n## Handle sensitive data\n\nUse synthetic frames or consented test images. Never attach private portraits or automatic webcam recordings. Local processing and user-directed sharing are different privacy boundaries.\n\n## Before opening a pull request\n\n- Explain what changed and why.\n- List commands actually run and their results; state skipped checks explicitly.\n- Include reproducible steps for bug fixes and relevant screenshots for UI changes.\n- Describe migration or rollback needs when changing persisted data.\n"
+      },
+      "source_hashes": {
+        "package.json": "9c26cacc823e63c7860bb1c9e36145937bc9aa56c7426ce6becb545885fda934",
+        "studio/index.html": "4ea8c9b709193ab38467486a8dd08e1fb190460c6be01d90bbcfcc3063e184df",
+        "README.md": "35f04ba38b9b99bdfcceffc19414c403925a35ec584d72fab7c79767ed526bf5"
+      }
+    },
+    {
+      "id": "bug-report",
+      "due": "2026-10-19",
+      "title": "Add reproducible bug report form with privacy guidance",
+      "files": {
+        ".github/ISSUE_TEMPLATE/bug-report.yml": "name: Bug report\ndescription: Report a reproducible problem in photobooth\ntitle: \"[Bug]: \"\nbody:\n  - type: markdown\n    attributes:\n      value: \"Use synthetic frames or consented test images. Never attach private portraits or automatic webcam recordings. Local processing and user-directed sharing are different privacy boundaries.\"\n  - type: textarea\n    id: steps\n    attributes:\n      label: Steps to reproduce\n      description: Include the application entry point and smallest reproducible sequence.\n    validations:\n      required: true\n  - type: textarea\n    id: expected\n    attributes:\n      label: Expected behavior\n    validations:\n      required: true\n  - type: textarea\n    id: actual\n    attributes:\n      label: Actual behavior\n    validations:\n      required: true\n  - type: input\n    id: environment\n    attributes:\n      label: Environment\n      description: Browser/OS, viewport if relevant, runtime version, and commit or deployment.\n    validations:\n      required: true\n  - type: textarea\n    id: evidence\n    attributes:\n      label: Sanitized logs or screenshots\n      description: Remove secrets and personal data. Include a failing request status when relevant.\n"
+      },
+      "source_hashes": {
+        "package.json": "9c26cacc823e63c7860bb1c9e36145937bc9aa56c7426ce6becb545885fda934",
+        "studio/index.html": "4ea8c9b709193ab38467486a8dd08e1fb190460c6be01d90bbcfcc3063e184df",
+        "README.md": "35f04ba38b9b99bdfcceffc19414c403925a35ec584d72fab7c79767ed526bf5"
+      }
+    },
+    {
+      "id": "pull-request",
+      "due": "2026-10-24",
+      "title": "Add pull request verification and recovery template",
+      "files": {
+        ".github/pull_request_template.md": "## Problem and resulting behavior\n\nExplain the concrete trigger, what happened before, and what happens now.\n\n## Verification\n\nList the commands or manual steps actually run, browser/viewports if relevant, and pass/fail results. Do not check off tests that were not run.\n\nSuggested project checks: For the static studio, verify camera permission denial, capture, retake, JPG export and GIF export using a test camera or synthetic frames. For the separate React app run `npm run build`; `npm run lint` reports its existing lint state. Run `python3 scripts/source-preflight.py` for inline-script syntax checks once available.\n\nRelevant user journey: Select a layout, allow camera access, capture a complete strip, retake a shot, add a caption/sticker, and export. Test permission denial and verify tracks stop after leaving capture. Test Share only on a browser that supports it.\n\n## Risks and recovery\n\nDescribe persisted-data effects, provider/API changes, and rollback steps if applicable.\n\n## Privacy\n\nUse synthetic frames or consented test images. Never attach private portraits or automatic webcam recordings. Local processing and user-directed sharing are different privacy boundaries.\n"
+      },
+      "source_hashes": {
+        "package.json": "9c26cacc823e63c7860bb1c9e36145937bc9aa56c7426ce6becb545885fda934",
+        "studio/index.html": "4ea8c9b709193ab38467486a8dd08e1fb190460c6be01d90bbcfcc3063e184df",
+        "README.md": "35f04ba38b9b99bdfcceffc19414c403925a35ec584d72fab7c79767ed526bf5"
+      }
+    },
+    {
+      "id": "source-preflight",
+      "due": "2026-10-29",
+      "title": "Add dependency-free source syntax checks and CI",
+      "files": {
+        "scripts/source-preflight.py": "\"\"\"Dependency-free source syntax check; does not contact providers or run the app.\"\"\"\nimport ast\nfrom html.parser import HTMLParser\nfrom pathlib import Path\nimport subprocess\nimport tempfile\n\nroot = Path(__file__).resolve().parents[1]\npaths = subprocess.check_output(['git', 'ls-files', '-z'], cwd=root).decode().split('\\0')\ncount = 0\nclass InlineScripts(HTMLParser):\n    def __init__(self):\n        super().__init__(); self.active=False; self.chunks=[]; self.scripts=[]\n    def handle_starttag(self, tag, attrs):\n        attrs=dict(attrs)\n        if tag == 'script':\n            self.active = not attrs.get('src') and attrs.get('type', '').lower() in ('', 'module', 'text/javascript', 'application/javascript')\n            self.chunks=[]\n    def handle_data(self, data):\n        if self.active: self.chunks.append(data)\n    def handle_endtag(self, tag):\n        if tag == 'script' and self.active:\n            self.scripts.append(''.join(self.chunks)); self.active=False\nfor name in paths:\n    path = root / name\n    if not path.is_file(): continue\n    if path.suffix in ('.js', '.mjs', '.cjs'):\n        subprocess.run(['node', '--check', str(path)], check=True); count += 1\n    elif path.suffix == '.py':\n        ast.parse(path.read_text(), filename=name); count += 1\n    elif path.suffix == '.html':\n        parser=InlineScripts(); parser.feed(path.read_text())\n        for script in parser.scripts:\n            with tempfile.TemporaryDirectory() as directory:\n                probe=Path(directory)/'inline.mjs'; probe.write_text(script)\n                subprocess.run(['node', '--check', str(probe)], check=True); count += 1\nif not count: raise SystemExit('No supported source files checked.')\nprint(f'PASS: {count} JavaScript/Python source and inline-script syntax checks. TypeScript, browser behavior, and provider access were not exercised.')\n",
+        ".github/workflows/source-preflight.yml": "name: Source preflight\non:\n  push:\n    paths: ['**/*.js', '**/*.mjs', '**/*.cjs', '**/*.py', '**/*.html', '.github/workflows/source-preflight.yml']\n  pull_request:\n    paths: ['**/*.js', '**/*.mjs', '**/*.cjs', '**/*.py', '**/*.html', '.github/workflows/source-preflight.yml']\n  workflow_dispatch:\npermissions:\n  contents: read\nconcurrency:\n  group: source-preflight-${{ github.ref }}\n  cancel-in-progress: true\njobs:\n  syntax:\n    runs-on: ubuntu-latest\n    timeout-minutes: 5\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n        with:\n          node-version: '24'\n      - run: python3 scripts/source-preflight.py\n"
+      },
+      "source_hashes": {
+        "package.json": "9c26cacc823e63c7860bb1c9e36145937bc9aa56c7426ce6becb545885fda934",
+        "studio/index.html": "4ea8c9b709193ab38467486a8dd08e1fb190460c6be01d90bbcfcc3063e184df",
+        "README.md": "35f04ba38b9b99bdfcceffc19414c403925a35ec584d72fab7c79767ed526bf5"
+      }
+    },
+    {
+      "id": "configuration-check",
+      "due": "2026-11-03",
+      "title": "Add static studio delivery smoke check",
+      "files": {
+        "scripts/check-local-setup.py": "\"\"\"Check that the static studio entry point is served independently of the React app.\"\"\"\nfrom pathlib import Path\nimport http.server\nimport threading\nimport urllib.request\n\nroot=Path(__file__).resolve().parents[1]/'studio'\nclass Handler(http.server.SimpleHTTPRequestHandler):\n    def __init__(self, *args, **kwargs): super().__init__(*args, directory=str(root), **kwargs)\n    def log_message(self, *args): pass\nserver=http.server.ThreadingHTTPServer(('127.0.0.1', 0), Handler)\nthread=threading.Thread(target=server.serve_forever, daemon=True); thread.start()\ntry:\n    with urllib.request.urlopen(f'http://127.0.0.1:{server.server_port}/', timeout=5) as response:\n        assert response.status == 200\n        assert response.headers.get_content_type() == 'text/html'\n        assert response.read() == (root/'index.html').read_bytes()\n    print('PASS: Static studio serves the expected HTML without the React build. Camera and exports require browser checks.')\nfinally:\n    server.shutdown(); server.server_close(); thread.join()\n"
+      },
+      "source_hashes": {
+        "package.json": "9c26cacc823e63c7860bb1c9e36145937bc9aa56c7426ce6becb545885fda934",
+        "studio/index.html": "4ea8c9b709193ab38467486a8dd08e1fb190460c6be01d90bbcfcc3063e184df",
+        "README.md": "35f04ba38b9b99bdfcceffc19414c403925a35ec584d72fab7c79767ed526bf5"
+      }
+    },
+    {
+      "id": "operations",
+      "due": "2026-11-08",
+      "title": "Document project-specific troubleshooting and recovery",
+      "files": {
+        "docs/maintenance/OPERATIONS.md": "# photobooth: troubleshooting and recovery\n\n## Scope\n\nThis guide describes the checked-in application as reviewed on 2026-10-10. Confirm current source and deployment configuration before operating on live data.\n\n## Local setup\n\nThe live static studio is `studio/index.html`. Run `python3 -m http.server 8080 --directory studio` from the repository root and open http://localhost:8080. No build is needed for this version. The separate original React application uses `npm ci` and `npm run dev`; do not confuse the two entry points.\n\n## Diagnose the failing boundary\n\nThe live studio is a static browser application; root React files are a separate implementation. Camera access requires a trusted local origin or HTTPS in deployment. If permission is denied, check the browser/site camera settings and OS permissions. Camera swapping depends on available devices. JPG/GIF generation is local; large captures can stress mobile memory. Browser Share support varies, so test download separately from sharing. Photos held in memory are not a server backup; export before closing the tab. Do not add an upload endpoint as part of routine maintenance.\n\n## Safe verification\n\nFor the static studio, verify camera permission denial, capture, retake, JPG export and GIF export using a test camera or synthetic frames. For the separate React app run `npm run build`; `npm run lint` reports its existing lint state. Run `python3 scripts/source-preflight.py` for inline-script syntax checks once available.\n\nRun `python3 scripts/check-local-setup.py` for a local configuration check (or static HTTP check for photobooth). This does not authenticate to remote providers or launch an application workload.\n\n## Reproduce before changing data\n\nSelect a layout, allow camera access, capture a complete strip, retake a shot, add a caption/sticker, and export. Test permission denial and verify tracks stop after leaving capture. Test Share only on a browser that supports it.\n\nUse fixture data and an isolated deployment. Keep the last working revision available. Record the runtime, affected route/provider and error status before retrying. Do not repeatedly retry a rate-limited upstream.\n\n## Information safe to share\n\nUse synthetic frames or consented test images. Never attach private portraits or automatic webcam recordings. Local processing and user-directed sharing are different privacy boundaries.\n\n## After a recovery\n\nRecheck the failing journey and one normal journey, confirm that persisted/browser-local data is still available where expected, and document any steps that could not be exercised.\n"
+      },
+      "source_hashes": {
+        "package.json": "9c26cacc823e63c7860bb1c9e36145937bc9aa56c7426ce6becb545885fda934",
+        "studio/index.html": "4ea8c9b709193ab38467486a8dd08e1fb190460c6be01d90bbcfcc3063e184df",
+        "README.md": "35f04ba38b9b99bdfcceffc19414c403925a35ec584d72fab7c79767ed526bf5"
+      }
+    }
+  ]
+}
