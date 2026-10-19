@@ -2,5 +2,9 @@
   "contributing": {
     "date": "2026-10-14",
     "title": "Add project-specific contribution and verification guide"
+  },
+  "bug-report": {
+    "date": "2026-10-19",
+    "title": "Add reproducible bug report form with privacy guidance"
   }
 }
